@@ -2,45 +2,49 @@ import json
 import boto3
 import base64
 
-# Simple 'Surgical Scraper' inside the handler for speed
 def scrape_signal(text):
-    # Keep only lines with high-signal keywords to save tokens
-    keywords = ['ERROR', 'FATAL', 'Warning', 'Failed', 'Status:', 'Node:']
+    # Filters for high-signal keywords to keep token counts tiny
+    keywords = ['ERROR', 'FATAL', 'Warning', 'Failed', 'Status:', 'Node:', 'latency']
     lines = text.split('\n')
-    signal = [l for l in lines if any(k in l for k in keywords)]
-    return "\n".join(signal[:15]) # Limit to top 15 matches
+    signal = [l for l in lines if any(k.lower() in l.lower() for k in keywords)]
+    return "\n".join(signal[:15])
 
 def lambda_handler(event, context):
-    # 1. Extract the raw log from the curl command
+    # Extracting the body from the curl POST
     raw_body = event.get('body', '')
-    
-    # Handle base64 encoding (common in API Gateway/Lambda handshake)
     if event.get('isBase64Encoded'):
         raw_body = base64.b64decode(raw_body).decode('utf-8')
     
-    # 2. Scrape for signal
+    # Run the Surgical Scraper
     clean_log = scrape_signal(raw_body)
     
-    # 3. Invoke Bedrock (Llama 3.2)
-    bedrock = boto3.client(service_name='bedrock-runtime')
+    # Connect to Bedrock
+    bedrock = boto3.client(service_name='bedrock-runtime', region_name='us-east-1')
     
-    prompt = f"Analyze this infrastructure log and provide a 1-sentence RCA and 1 CLI command to fix it:\n{clean_log}"
+    prompt = f"Analyze this infra log and provide a 1-sentence RCA and 1 CLI fix:\n{clean_log}"
     
-    body = json.dumps({
+    # Llama 3.2 1B Instruct format
+    native_request = {
         "prompt": f"<s>[INST] {prompt} [/INST]",
         "max_gen_len": 128,
-        "temperature": 0.1
-    })
-    
-    response = bedrock.invoke_model(
-        modelId='us.meta.llama3-2-1b-instruct-v1:0', # Using the lean 1B for speed
-        body=body
-    )
-    
-    result = json.loads(response.get('body').read())
-    
-    return {
-        'statusCode': 200,
-        'headers': {'Content-Type': 'text/plain'},
-        'body': result.get('generation')
+        "temperature": 0.1,
     }
+    
+    try:
+        response = bedrock.invoke_model(
+            modelId='us.meta.llama3-2-1b-instruct-v1:0',
+            body=json.dumps(native_request)
+        )
+        model_response = json.loads(response.get('body').read())
+        output_text = model_response.get('generation', 'No diagnosis generated.')
+        
+        return {
+            'statusCode': 200,
+            'headers': {'Content-Type': 'text/plain'},
+            'body': output_text
+        }
+    except Exception as e:
+        return {
+            'statusCode': 500,
+            'body': f"Error: {str(e)}"
+        }
