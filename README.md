@@ -8,6 +8,8 @@
 ![Maintained by](https://img.shields.io/badge/Maintained_by-Rack2Cloud-blue)
 ![Update](https://img.shields.io/badge/Update-Jan_6,_2026-orange)
 
+[![Launch Stack](https://img.shields.io/badge/Launch%20Stack-AWS-orange?style=for-the-badge&logo=amazonaws)](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/create/review?stackName=AuraOps-Engine&templateURL=https://YOUR-S3-BUCKET.s3.amazonaws.com/aura-ops.yaml)
+
 This repository provides a high-performance implementation for running Generative AI (Llama 3.2) on AWS Lambda. By offloading weight-paging to the Amazon Bedrock managed plane, we achieve near-instant initialization, bypassing the traditional 10s+ "Cold Start" penalty.
 
 ---
