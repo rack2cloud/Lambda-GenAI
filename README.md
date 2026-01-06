@@ -1,28 +1,34 @@
 # Lambda-GenAI
-Sub-500ms Cold Starts for Llama 3.2 on AWS Lambda using Amazon Bedrock.
 
-# ⚡ AWS Lambda + Llama 3.2 (The Sub-500ms Cold Start PoC)
+### Sub-500ms Cold Starts for Llama 3.2 on AWS Lambda using Amazon Bedrock.
 
-[![Aura Ops Live Utility](https://img.shields.io/badge/Live%20Utility-Aura%20Ops-blueviolet)](https://www.rack2cloud.com/aura-ops-utility/)
-[![Maintained by Rack2Cloud](https://img.shields.io/badge/Maintained%20by-Rack2Cloud-blue)](https://www.rack2cloud.com)
-[![Status](https://img.shields.io/badge/Update-Jan%206%2C%202026-orange)](#)
+# ⚡ AWS Lambda + Llama 3.2 (Aura Ops v2.0)
+
+![Live Utility](https://img.shields.io/badge/Live_Utility-Aura_Ops-blueviolet)
+![Maintained by](https://img.shields.io/badge/Maintained_by-Rack2Cloud-blue)
+![Update](https://img.shields.io/badge/Update-Jan_6,_2026-orange)
 
 This repository provides a high-performance implementation for running Generative AI (Llama 3.2) on AWS Lambda. By offloading weight-paging to the Amazon Bedrock managed plane, we achieve near-instant initialization, bypassing the traditional 10s+ "Cold Start" penalty.
 
 ---
 
-## 🏗 System Architecture
+## 🏗️ System Architecture
 The "Surgical Scraper" uses a keyword-interceptor logic to route logs to specialized AI personalities.
 
 ```mermaid
-graph LR
-    Log[Log Source] --> Lambda[AWS Lambda]
-    Lambda --> Bedrock[Bedrock Llama 3.2]
-    Bedrock --> Mapper[Action Mapper]
-    Mapper --> Hook[Remediation Hook]
+graph TD
+    A[Log Source: Nutanix/Pure] --> B[AWS Lambda: Aura Ops Engine]
+    B --> C{Surgical Scraper}
+    C -- Storage --> D[Pure Storage Logic]
+    C -- Compute --> E[Nutanix AOS Logic]
+    D & E --> F[Bedrock: Llama 3.2 1B]
+    F --> G[Structured JSON Response]
+    G --> Hook[Remediation Hook]
 ```
-## 🛠 Aura Ops Diagnostic Engine (Status: Stable)
-We have successfully integrated the **"Surgical Scraper"** module using the **Amazon Bedrock Converse API**. This architecture uses **Inference Profiles** to ensure stability and zero-token-looping.
+---
+
+## 🛠️ Aura Ops Diagnostic Engine (Status: Stable)
+We have successfully integrated the **"Surgical Scraper"** module using the **Amazon Bedrock Converse API**. This architecture utilizes **Inference Profiles** to ensure stability and zero-token-looping.
 
 ### **Diagnostic Support Matrix**
 | System | Log Source | Status | Focus Area |
@@ -41,8 +47,6 @@ You can pipe cluster outputs directly into the engine for a sub-500ms RCA.
 curl -X POST https://<YOUR-LAMBDA-URL>/ \
   -H "Content-Type: text/plain" \
   -d "Error: Purity//FA reported CBT drift on volume 'vol-01' during snapshot"
-
-{
 ```
 **Structured JSON Response:**
 ```bash
@@ -51,7 +55,6 @@ curl -X POST https://<YOUR-LAMBDA-URL>/ \
   "category": "Storage",
   "remediation_hook": "purevol snap create --suffix aura-ops-recovery vol-01",
   "source": "Aura-Ops-Engine-v2"
-}
 ```
 
 ---
