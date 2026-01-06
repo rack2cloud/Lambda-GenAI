@@ -65,7 +65,7 @@ curl -X POST https://<YOUR-LAMBDA-URL>/ \
 ---
 
 ## 🏗 Why this exists
-In 2026, the shift toward **Sovereign Infrastructure** means we have to care about the substrate again. Managing disaggregated Nutanix + Pure stacks shouldn't mean jumping between three different consoles. This project is the open-source core of our mission to bring "Prism-simplicity" to the entire hybrid-cloud stack.
+In 2026, the shift toward **Sovereign Infrastructure** means we have to care about the substrate again. Managing disaggregated Nutanix + Pure stacks shouldn't mean jumping between different consoles. This project is the open-source core of our mission to bring simplicity to the hybrid-cloud stack.
 
 ## 🚀 Deployment
 1. **Permissions:** Attach an IAM policy with `bedrock:Converse` to your Lambda role.
