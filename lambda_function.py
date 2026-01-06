@@ -2,31 +2,33 @@ import json
 import boto3
 import base64
 
+# Use the Bedrock Runtime client
 bedrock = boto3.client(service_name='bedrock-runtime', region_name='us-east-1')
 
 def lambda_handler(event, context):
     try:
+        # 1. Grab the log
         log_input = base64.b64decode(event['body']).decode('utf-8') if event.get('isBase64Encoded') else event.get('body', '')
         
-        # New "Instruction-First" Prompt to kill the loop
-        prompt = f"Instruction: Provide a one-sentence RCA for this log.\nLog: {log_input}\nRCA:"
+        # 2. Use the Converse API (much more stable for Llama 3.2)
+        # This removes the need for manual [INST] tags
+        messages = [{
+            "role": "user",
+            "content": [{"text": f"Provide a one-sentence root cause analysis for this log: {log_input}"}]
+        }]
+        
+        system_prompts = [{"text": "You are a concise SRE diagnostic tool. Output ONLY the RCA sentence."}]
 
-        body = json.dumps({
-            "prompt": prompt,
-            "max_gen_len": 64,
-            "temperature": 0, # Set to 0 for maximum technical precision
-            "top_p": 0.1,
-            "stop_sequences": ["\n", "Log:", "Instruction:"] # Force-kill any repetition
-        })
-
-        response = bedrock.invoke_model(
+        # 3. Request completion
+        response = bedrock.converse(
             modelId='us-east-1:meta.llama3-2-1b-instruct-v1:0',
-            body=body
+            messages=messages,
+            system=system_prompts,
+            inferenceConfig={"maxTokens": 64, "temperature": 0.0} # Zero temp for precision
         )
 
-        response_body = json.loads(response.get('body').read())
-        # Strip any leading whitespace or tags
-        generation = response_body.get('generation', '').split('RCA:')[-1].strip()
+        # 4. Extract the clean text
+        generation = response['output']['message']['content'][0]['text'].strip()
         
         return {
             'statusCode': 200,
