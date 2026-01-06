@@ -1,5 +1,4 @@
 # Lambda-GenAI
-
 ### Sub-500ms Cold Starts for Llama 3.2 on AWS Lambda using Amazon Bedrock.
 
 # ⚡ AWS Lambda + Llama 3.2 (Aura Ops v2.0)
@@ -10,13 +9,35 @@
 
 [![Launch Stack](https://img.shields.io/badge/Launch%20Stack-AWS-orange?style=for-the-badge&logo=amazonaws)](https://console.aws.amazon.com/cloudformation/home?region=us-east-1#/stacks/create/review?stackName=AuraOps-Engine&templateURL=https://YOUR-S3-BUCKET.s3.amazonaws.com/aura-ops.yaml)
 
-This repository provides a high-performance implementation for running Generative AI (Llama 3.2) on AWS Lambda. By offloading weight-paging to the Amazon Bedrock managed plane, we achieve near-instant initialization, bypassing the traditional 10s+ "Cold Start" penalty.
+---
+
+## 📘 The Aura Ops "Full Picture" Guide
+
+### **The Why: Sovereignty & Simplicity**
+In 2026, infrastructure logs are sensitive "fingerprints." Aura Ops allows you to deploy a **Private AI Diagnostic Engine** within your own AWS perimeter, ensuring data never leaves your control. We aim to bring "Prism-simplicity" to disaggregated Nutanix and Pure stacks without jumping between consoles.
+
+### **The What: The Three Pillars**
+* **The Scraper (Lambda)**: A lightweight Python filter identifying source (Nutanix vs. Pure).
+* **The Brain (Llama 3.2)**: A private model performing Root Cause Analysis (RCA).
+* **The Hook (Remediation)**: Pre-mapped CLI commands (ncli, purevol, kubectl) for instant resolution.
+
+### **The How: One-Click Integration**
+1. **Deploy**: Click the **Launch Stack** button above.
+2. **Connect**: Copy the `AuraOpsEndpoint` from CloudFormation Outputs.
+3. **Activate**: Paste into [Aura Ops Utility Settings](https://www.rack2cloud.com/aura-ops-utility/).
+
+---
+
+## 🛠️ Troubleshooting: Fix "AccessDeniedException"
+If your Lambda fails immediately, your AWS account likely hasn't "unlocked" the AI model yet.
+
+1. **Navigate**: Go to [Bedrock Model Access](https://console.aws.amazon.com/bedrock/home?region=us-east-1#/modelaccess) in `us-east-1`.
+2. **Edit**: Click the orange **Edit** button (top right).
+3. **Approve**: Check **Meta -> Llama 3.2 1B Instruct** and click **Save changes**.
 
 ---
 
 ## 🏗️ System Architecture
-The "Surgical Scraper" uses a keyword-interceptor logic to route logs to specialized AI personalities.
-
 ```mermaid
 graph TD
     A[Log Source: Nutanix/Pure] --> B[AWS Lambda: Aura Ops Engine]
@@ -51,7 +72,7 @@ curl -X POST https://<YOUR-LAMBDA-URL>/ \
   -d "Error: Purity//FA reported CBT drift on volume 'vol-01' during snapshot"
 ```
 **Structured JSON Response:**
-```bash
+```json
  "rca": "The root cause is a corrupted volume file (vol-01) causing snapshot drift.",
   "severity": "Critical",
   "category": "Storage",
@@ -66,17 +87,19 @@ curl -X POST https://<YOUR-LAMBDA-URL>/ \
 - [x] Migration to Bedrock Converse API & Inference Profiles
 - [x] Integration with Pure Storage Telemetry for CBT drift detection
 - [x] Automated remediation hooks for Nutanix/Pure
+- [x] Multi-region failover support for Bedrock Inference Profiles.
+
+---
+---
+
+## 🚀 Technical Deployment Requirements
+
+1. **Permissions**: Ensure your role has `bedrock:InvokeModel` access.
+2. **Memory**: Recommended **512MB** for optimal inference speed.
+3. **Environment**: Set `AURA_HOOK_URL` to `none` for initial testing.
 
 ---
 
-## 🏗 Why this exists
-In 2026, the shift toward **Sovereign Infrastructure** means we have to care about the substrate again. Managing disaggregated Nutanix + Pure stacks shouldn't mean jumping between different consoles. This project is the open-source core of our mission to bring simplicity to the hybrid-cloud stack.
-
-## 🚀 Deployment
-1. **Permissions:** Attach an IAM policy with `bedrock:Converse` to your Lambda role.
-2. **Inference Profile:** Uses `us.meta.llama3-2-1b-instruct-v1:0` for stability.
-3. **Settings:** Recommended memory: **512MB**.
-4. **Environment:** Set `AURA_HOOK_URL` for automated webhook dispatch.
-
 ## 📜 License
+
 MIT - Created and maintained by the engineering team at [Rack2Cloud](https://www.rack2cloud.com).
